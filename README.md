@@ -33,7 +33,7 @@ import useCookie from './path/to/useCookie'; // مسیر صحیح فایل hook
 
 const App = () => {
   // استفاده از Hook برای خواندن و نوشتن مقادیر کوکی
-  const [name, setName] = useCookie('name', 'defaultValue', 7);
+  const [name, setName] = useCookie<string | null>('name', 'defaultValue', 7);
 
   // تابعی برای به‌روز رسانی مقدار کوکی
   const updateCookie = () => {
