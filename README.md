@@ -144,7 +144,4 @@ function App() {
 - `key` (`string`): کلید `localStorage`.
 - `initialValue` (`T | (() => T)`): مقدار اولیه.
 
-## مجوز
 
-این پروژه تحت مجوز MIT منتشر شده است.
-```
