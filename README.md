@@ -1,51 +1,150 @@
-# React Custom Hooks for Cookie and Local Storage Management
 
-این پروژه شامل دو Hook سفارشی React برای مدیریت کوکی‌ها و Local Storage است. این Hooks به شما امکان می‌دهند تا به راحتی مقادیر را در کوکی‌ها و Local Storage ذخیره، خوانده و به‌روز رسانی کنید.
 
-## ویژگی‌ها
 
-- مدیریت ساده کوکی‌ها با قابلیت تنظیم زمان انقضا
-- ذخیره و بازیابی داده‌ها از Local Storage
-- استفاده آسان با TypeScript
+# هوک‌های سفارشی React برای کوکی و localStorage
+
+این مخزن شامل دو هوک سفارشی React است: `useCookie` و `useLocalStorage`. این هوک‌ها راهی ساده و مؤثر برای مدیریت حالت‌هایی که با کوکی‌های مرورگر و `localStorage` همگام می‌شوند، فراهم می‌کنند.
+
+## فهرست مطالب
+
+- [نصب](#نصب)
+- [استفاده](#استفاده)
+  - [useCookie](#usecookie)
+  - [useLocalStorage](#uselocalstorage)
+- [API](#api)
+
 
 ## نصب
 
-برای استفاده از این Hooks‌ها، ابتدا باید پکیج `js-cookie` را نصب کنید:
+برای استفاده از این هوک‌ها در پروژه خود، نیاز به نصب `react` و `js-cookie` دارید. می‌توانید آنها را با استفاده از npm یا yarn نصب کنید:
 
 ```bash
 npm install js-cookie
-# یا
+```
+
+یا
+
+```bash
 yarn add js-cookie
+```
 
+## استفاده
 
+### `useCookie`
 
-## نحوه استفاده
+هوک `useCookie` برای مدیریت حالت‌هایی که با کوکی‌های مرورگر همگام می‌شوند استفاده می‌شود.
 
-### استفاده از Hook مدیریت کوکی (`useCookie`)
+```javascript
+import { useState, useEffect } from "react";
+import Cookie from "js-cookie";
 
-برای استفاده از Hook مدیریت کوکی، از `useCookie` استفاده کنید. این Hook برای خواندن و نوشتن مقادیر کوکی‌ها کاربرد دارد و می‌توانید زمان انقضای کوکی را نیز تنظیم کنید.
+export default function useCookie<T>(
+  key: string,
+  initialValue: T | (() => T),
+  expiresTime: number
+) {
+  const [value, setValue] = useState<T>(() => {
+    const jsonValue = Cookie.get(key);
+    if (jsonValue !== undefined) {
+      return JSON.parse(jsonValue);
+    }
+    if (typeof initialValue === "function") {
+      return (initialValue as () => T)();
+    } else {
+      return initialValue;
+    }
+  });
 
-#### مثال
+  useEffect(() => {
+    if (value !== undefined) {
+      Cookie.set(key, JSON.stringify(value), { expires: expiresTime });
+    }
+  }, [key, value, expiresTime]);
 
-```jsx
-import React from 'react';
-import useCookie from './path/to/useCookie'; // مسیر صحیح فایل hook
+  return [value, setValue] as [typeof value, typeof setValue];
+}
+```
 
-const App = () => {
-  // استفاده از Hook برای خواندن و نوشتن مقادیر کوکی
-  const [name, setName] = useCookie<string | null>('name', 'defaultValue', 7);
+**نمونه استفاده:**
 
-  // تابعی برای به‌روز رسانی مقدار کوکی
-  const updateCookie = () => {
-    setName('newValue');
-  };
+```javascript
+import useCookie from './useCookie';
+
+function App() {
+  const [user, setUser] = useCookie('user', { name: 'John Doe' }, 7);
 
   return (
     <div>
-      <p>Current Cookie Value: {name}</p>
-      <button onClick={updateCookie}>Update Cookie</button>
+      <h1>سلام، {user.name}</h1>
+      <button onClick={() => setUser({ name: 'Jane Doe' })}>
+        تغییر نام
+      </button>
     </div>
   );
-};
+}
+```
 
-export default App;
+### `useLocalStorage`
+
+هوک `useLocalStorage` برای مدیریت حالت‌هایی که با `localStorage` همگام می‌شوند استفاده می‌شود.
+
+```javascript
+import { useState, useEffect } from "react";
+
+export function useLocalStorage<T>(key: string, initialValue: T | (() => T)) {
+  const [value, setValue] = useState<T>(() => {
+    const jsonValue = localStorage.getItem(key);
+    if (jsonValue !== null) {
+      return JSON.parse(jsonValue);
+    }
+    if (typeof initialValue === "function") {
+      return (initialValue as () => T)();
+    } else {
+      return initialValue;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value));
+  }, [key, value]);
+
+  return [value, setValue] as [typeof value, typeof setValue];
+}
+```
+
+**نمونه استفاده:**
+
+```javascript
+import { useLocalStorage } from './useLocalStorage';
+
+function App() {
+  const [user, setUser] = useLocalStorage('user', { name: 'John Doe' });
+
+  return (
+    <div>
+      <h1>سلام، {user.name}</h1>
+      <button onClick={() => setUser({ name: 'Jane Doe' })}>
+        تغییر نام
+      </button>
+    </div>
+  );
+}
+```
+
+## API
+
+### `useCookie`
+
+- `key` (`string`): کلید کوکی.
+- `initialValue` (`T | (() => T)`): مقدار اولیه.
+- `expiresTime` (`number`): زمان انقضای کوکی به روز.
+
+### `useLocalStorage`
+
+- `key` (`string`): کلید `localStorage`.
+- `initialValue` (`T | (() => T)`): مقدار اولیه.
+
+## مجوز
+
+این پروژه تحت مجوز MIT منتشر شده است.
+```
